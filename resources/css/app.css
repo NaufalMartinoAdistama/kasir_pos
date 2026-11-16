@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        color: #0f172a;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', 'Figtree', sans-serif;
+        background-color: #f8fafc;
+        color: #0f172a;
+    }
+
+    /* High contrast text defaults for headings and labels */
+    h1, h2, h3, h4, h5, h6 {
+        color: #0f172a;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+    }
+
+    label {
+        color: #1e293b;
+        font-weight: 700;
+    }
+
+    /* Crisp table defaults */
+    table th {
+        color: #0f172a;
+        font-weight: 800;
+        letter-spacing: 0.03em;
+    }
+
+    table td {
+        color: #1e293b;
+    }
+}
+
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #2563eb;
+}
+
+/* Enhanced Focus Ring */
+input:focus, select:focus, textarea:focus {
+    outline: none !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18) !important;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.25s ease-out forwards;
+}
