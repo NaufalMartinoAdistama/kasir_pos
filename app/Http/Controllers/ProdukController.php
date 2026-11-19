@@ -61,7 +61,7 @@ class ProdukController extends Controller
                 $query->where('id_kategori', $kategoriId);
             })
             ->orderBy('nama_produk', 'asc')
-            ->get(['id_produk', 'id_kategori', 'nama_produk', 'kode_barcode', 'harga', 'stok']);
+            ->get(['id_produk', 'id_kategori', 'nama_produk', 'kode_barcode', 'harga', 'stok', 'foto']);
 
         $kategoriList = Kategori::orderBy('nama_kategori')->get(['id_kategori', 'nama_kategori']);
 
@@ -83,15 +83,31 @@ class ProdukController extends Controller
             'kode_barcode' => ['nullable', 'string', 'max:100', 'unique:tbl_produk,kode_barcode'],
             'harga' => ['required', 'numeric', 'min:0'],
             'stok' => ['required', 'integer', 'min:0'],
+            'foto' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp,svg', 'max:3072'],
         ], [
             'kode_barcode.unique' => 'Kode barcode ini sudah digunakan oleh produk lain!',
+            'foto.image' => 'File foto harus berupa gambar valid (JPEG, PNG, JPG, WEBP)!',
+            'foto.max' => 'Ukuran foto maksimal adalah 3MB.',
         ]);
 
         $validated['kode_barcode'] = !empty($validated['kode_barcode']) ? trim($validated['kode_barcode']) : null;
 
+        if ($request->hasFile('foto')) {
+            $file = $request->file('foto');
+            $filename = 'produk_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $destinationPath = public_path('uploads/produk');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
+            }
+            $file->move($destinationPath, $filename);
+            $validated['foto'] = 'uploads/produk/' . $filename;
+        } else {
+            $validated['foto'] = null;
+        }
+
         Produk::create($validated);
 
-        return redirect()->back()->with('success', 'Produk baru berhasil ditambahkan.');
+        return redirect()->back()->with('success', 'Produk baru beserta foto berhasil ditambahkan.');
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -102,16 +118,49 @@ class ProdukController extends Controller
             'kode_barcode' => ['nullable', 'string', 'max:100', 'unique:tbl_produk,kode_barcode,' . $id . ',id_produk'],
             'harga' => ['required', 'numeric', 'min:0'],
             'stok' => ['required', 'integer', 'min:0'],
+            'foto' => ['nullable'],
+            'hapus_foto' => ['nullable'],
         ], [
             'kode_barcode.unique' => 'Kode barcode ini sudah digunakan oleh produk lain!',
         ]);
 
+        if ($request->hasFile('foto')) {
+            $request->validate([
+                'foto' => ['image', 'mimes:jpeg,png,jpg,webp,svg', 'max:3072'],
+            ], [
+                'foto.image' => 'File foto harus berupa gambar valid (JPEG, PNG, JPG, WEBP)!',
+                'foto.max' => 'Ukuran foto maksimal adalah 3MB.',
+            ]);
+        }
+
         $validated['kode_barcode'] = !empty($validated['kode_barcode']) ? trim($validated['kode_barcode']) : null;
 
         $produk = Produk::findOrFail($id);
+
+        if ($request->hasFile('foto')) {
+            if ($produk->foto && file_exists(public_path($produk->foto))) {
+                @unlink(public_path($produk->foto));
+            }
+            $file = $request->file('foto');
+            $filename = 'produk_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $destinationPath = public_path('uploads/produk');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
+            }
+            $file->move($destinationPath, $filename);
+            $validated['foto'] = 'uploads/produk/' . $filename;
+        } elseif ($request->boolean('hapus_foto')) {
+            if ($produk->foto && file_exists(public_path($produk->foto))) {
+                @unlink(public_path($produk->foto));
+            }
+            $validated['foto'] = null;
+        } else {
+            unset($validated['foto']);
+        }
+
         $produk->update($validated);
 
-        return redirect()->back()->with('success', 'Produk berhasil diperbarui.');
+        return redirect()->back()->with('success', 'Data produk & foto berhasil diperbarui.');
     }
 
     public function destroy(int $id): RedirectResponse
@@ -120,6 +169,10 @@ class ProdukController extends Controller
 
         if ($produk->detail_transaksi_count > 0) {
             return redirect()->back()->with('error', 'Produk tidak dapat dihapus karena sudah memiliki riwayat transaksi.');
+        }
+
+        if ($produk->foto && file_exists(public_path($produk->foto))) {
+            @unlink(public_path($produk->foto));
         }
 
         $produk->delete();

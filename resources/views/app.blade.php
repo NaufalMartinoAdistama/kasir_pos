@@ -3,12 +3,16 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
         <!-- Fonts: Plus Jakarta Sans & Figtree for ultra-crisp typography -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800|figtree:400,500,600,700,800,900&display=swap" rel="stylesheet" />
+
+        <!-- Duitku POP Sandbox SDK -->
+        <script src="https://app-sandbox.duitku.com/lib/js/duitku.js"></script>
 
         <!-- Scripts -->
         @routes

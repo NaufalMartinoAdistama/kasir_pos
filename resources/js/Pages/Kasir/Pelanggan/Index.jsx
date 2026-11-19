@@ -101,7 +101,7 @@ export default function KasirPelangganIndex({ pelanggan, filters = {} }) {
                 </div>
             }
         >
-            <Head title="Data Pelanggan - NAUFAM MART" />
+            <Head title="Data Pelanggan - MARTIN MART" />
 
             <div className="bg-white rounded-2xl border-2 border-slate-200 shadow-xs overflow-hidden">
                 {/* Search Bar & Add Button */}

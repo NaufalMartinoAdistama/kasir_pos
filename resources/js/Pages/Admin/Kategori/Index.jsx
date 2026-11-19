@@ -81,7 +81,7 @@ export default function KategoriIndex({ kategori = [], filters = {} }) {
                 </div>
             }
         >
-            <Head title="Master Kategori - NAUFAM MART" />
+            <Head title="Master Kategori - MARTIN MART" />
 
             <div className="bg-white rounded-2xl border-2 border-slate-200 shadow-xs overflow-hidden">
                 {/* Header Actions */}

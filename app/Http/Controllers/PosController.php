@@ -29,7 +29,7 @@ class PosController extends Controller
         ]);
         $produkList = Produk::with('kategori')
             ->orderBy('nama_produk', 'asc')
-            ->get(['id_produk', 'id_kategori', 'nama_produk', 'kode_barcode', 'harga', 'stok']);
+            ->get(['id_produk', 'id_kategori', 'nama_produk', 'kode_barcode', 'harga', 'stok', 'foto']);
 
         return Inertia::render('Kasir/Pos/Index', [
             'pelanggan_list' => $pelangganList,
@@ -64,7 +64,9 @@ class PosController extends Controller
             $idPelanggan = (int) $validated['id_pelanggan'];
             $items = $validated['items'];
             $diskon = isset($validated['diskon']) ? (float) $validated['diskon'] : 0.0;
-            $metode = $validated['metode_pembayaran'] ?? 'Tunai';
+            $metode = in_array($validated['metode_pembayaran'] ?? '', ['Tunai', 'QRIS', 'Transfer Bank', 'Kartu Debit'])
+                ? $validated['metode_pembayaran']
+                : 'Tunai';
             $inputBayar = $validated['bayar'] ?? null;
 
             try {
@@ -165,7 +167,9 @@ class PosController extends Controller
         $idProduk = (int) $validated['id_produk'];
         $jumlah = (int) $validated['jumlah'];
         $diskon = isset($validated['diskon']) ? (float) $validated['diskon'] : 0.0;
-        $metode = $validated['metode_pembayaran'] ?? 'Tunai';
+        $metode = in_array($validated['metode_pembayaran'] ?? '', ['QRIS', 'Transfer Bank', 'Kartu Debit'])
+            ? $validated['metode_pembayaran']
+            : 'QRIS';
 
         try {
             $result = DB::select('CALL TambahTransaksiTerintegrasi(?, ?, ?, ?)', [
@@ -218,13 +222,23 @@ class PosController extends Controller
         $search = $request->input('search');
         $dariTanggal = $request->input('dari_tanggal');
         $sampaiTanggal = $request->input('sampai_tanggal');
+        $sumber = $request->input('sumber_transaksi'); // 'Semua', 'POS Kasir', 'Online Pelanggan'
+        $statusPesanan = $request->input('status_pesanan');
 
         $transaksi = Transaksi::with(['pelanggan', 'details.produk.kategori'])
             ->when($search, function ($q, $search) {
-                $q->whereHas('pelanggan', function ($sub) use ($search) {
-                    $sub->where('nama_pelanggan', 'like', "%{$search}%");
-                })->orWhere('id_transaksi', $search);
+                $q->where(function ($query) use ($search) {
+                    $query->whereHas('pelanggan', function ($sub) use ($search) {
+                        $sub->where('nama_pelanggan', 'like', "%{$search}%")
+                            ->orWhere('no_hp', 'like', "%{$search}%");
+                    })
+                    ->orWhere('no_hp_penerima', 'like', "%{$search}%")
+                    ->orWhere('alamat_pengiriman', 'like', "%{$search}%")
+                    ->orWhere('id_transaksi', $search);
+                });
             })
+            ->when($sumber && $sumber !== 'Semua', fn ($q) => $q->where('sumber_transaksi', $sumber))
+            ->when($statusPesanan && $statusPesanan !== 'Semua', fn ($q) => $q->where('status_pesanan', $statusPesanan))
             ->when($dariTanggal, fn ($q) => $q->whereDate('tanggal', '>=', $dariTanggal))
             ->when($sampaiTanggal, fn ($q) => $q->whereDate('tanggal', '<=', $sampaiTanggal))
             ->orderBy('id_transaksi', 'desc')
@@ -240,8 +254,27 @@ class PosController extends Controller
                 'search' => $search,
                 'dari_tanggal' => $dariTanggal,
                 'sampai_tanggal' => $sampaiTanggal,
+                'sumber_transaksi' => $sumber ?: 'Semua',
+                'status_pesanan' => $statusPesanan ?: 'Semua',
             ],
         ]);
+    }
+
+    /**
+     * Update status pesanan online oleh Admin / Kasir
+     */
+    public function updateStatusPesanan(Request $request, int $id): RedirectResponse
+    {
+        $validated = $request->validate([
+            'status_pesanan' => ['required', 'in:Menunggu Pembayaran,Diproses,Dikirim,Selesai,Dibatalkan'],
+        ]);
+
+        $trx = Transaksi::findOrFail($id);
+        $trx->update([
+            'status_pesanan' => $validated['status_pesanan'],
+        ]);
+
+        return redirect()->back()->with('success', 'Status pesanan #' . str_pad($id, 5, '0', STR_PAD_LEFT) . ' berhasil diperbarui menjadi "' . $validated['status_pesanan'] . '".');
     }
 
     /**

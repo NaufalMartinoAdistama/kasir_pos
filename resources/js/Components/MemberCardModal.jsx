@@ -78,7 +78,7 @@ export default function MemberCardModal({ show, onClose, pelanggan }) {
                                 </div>
                                 <div>
                                     <h4 className="font-black text-sm tracking-tight leading-tight">
-                                        NAUFAM MART
+                                        MARTIN MART
                                     </h4>
                                     <p className="text-[8.5px] text-blue-200 font-medium tracking-widest uppercase">
                                         Priority Member Card

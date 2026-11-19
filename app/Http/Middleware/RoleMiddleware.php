@@ -32,6 +32,10 @@ class RoleMiddleware
                 return redirect()->route('admin.dashboard');
             }
 
+            if ($user->role === 'pelanggan') {
+                return redirect()->route('pelanggan.katalog')->with('error', 'Akses dibatasi untuk akun Pelanggan.');
+            }
+
             abort(403, 'Akses ditolak. Anda tidak memiliki izin untuk mengakses halaman ini.');
         }
 

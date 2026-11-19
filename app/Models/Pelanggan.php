@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Pelanggan extends Model
 {
@@ -14,6 +15,10 @@ class Pelanggan extends Model
     protected $fillable = [
         'nama_pelanggan',
         'kota',
+        'no_hp',
+        'alamat_lengkap',
+        'latitude',
+        'longitude',
         'kode_rfid',
         'poin',
         'status_member',
@@ -21,7 +26,14 @@ class Pelanggan extends Model
 
     protected $casts = [
         'poin' => 'integer',
+        'latitude' => 'float',
+        'longitude' => 'float',
     ];
+
+    public function user(): HasOne
+    {
+        return $this->hasOne(User::class, 'id_pelanggan', 'id_pelanggan');
+    }
 
     public function transaksi(): HasMany
     {

@@ -22,6 +22,8 @@ export function formatDate(dateString) {
     }
 }
 
+export const formatTanggal = formatDate;
+
 export function formatDateTime(dateString) {
     if (!dateString) return '-';
     try {
@@ -61,4 +63,50 @@ export function formatFullDayDateTime(date = new Date()) {
     } catch {
         return '';
     }
+}
+
+export function getPaymentBadgeProps(metode) {
+    const m = (metode || 'Tunai').trim();
+    const lower = m.toLowerCase();
+
+    if (lower === 'tunai' || lower === 'cash') {
+        return {
+            label: m,
+            icon: '💵',
+            className: 'bg-emerald-50 text-emerald-800 border-emerald-300',
+        };
+    }
+    if (lower.includes('qris')) {
+        return {
+            label: m,
+            icon: '📱',
+            className: 'bg-rose-50 text-rose-800 border-rose-300',
+        };
+    }
+    if (lower.includes('virtual account') || lower.includes('va')) {
+        return {
+            label: m,
+            icon: '🏦',
+            className: 'bg-blue-50 text-blue-800 border-blue-300',
+        };
+    }
+    if (lower.includes('shopee') || lower.includes('ovo') || lower.includes('dana') || lower.includes('gopay') || lower.includes('linkaja')) {
+        return {
+            label: m,
+            icon: '👛',
+            className: 'bg-amber-50 text-amber-800 border-amber-300',
+        };
+    }
+    if (lower.includes('kartu') || lower.includes('debit') || lower.includes('kredit')) {
+        return {
+            label: m,
+            icon: '💳',
+            className: 'bg-purple-50 text-purple-800 border-purple-300',
+        };
+    }
+    return {
+        label: m,
+        icon: '💳',
+        className: 'bg-sky-50 text-sky-800 border-sky-300',
+    };
 }

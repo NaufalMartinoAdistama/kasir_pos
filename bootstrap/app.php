@@ -19,6 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
+
+        // Kecualikan webhook dan sync endpoint Duitku dari proteksi CSRF
+        $middleware->validateCsrfTokens(except: [
+            'duitku/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

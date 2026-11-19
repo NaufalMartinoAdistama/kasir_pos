@@ -14,6 +14,8 @@ import {
     IconSparkles,
     IconPrinter,
     IconClipboardList,
+    IconCamera,
+    IconX,
 } from '@/Components/Icons';
 import { formatRupiah } from '@/Utils/format';
 
@@ -28,15 +30,19 @@ export default function ProdukIndex({
     const [editingItem, setEditingItem] = useState(null);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState(null);
+    const [photoPreview, setPhotoPreview] = useState(null);
 
     const barcodeInputRef = useRef(null);
+    const fileInputRef = useRef(null);
 
-    const { data, setData, post, put, processing, errors, reset, clearErrors } = useForm({
+    const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         id_kategori: '',
         nama_produk: '',
         kode_barcode: '',
         harga: '',
         stok: '',
+        foto: null,
+        hapus_foto: false,
     });
 
     const handleFilter = (e) => {
@@ -60,14 +66,47 @@ export default function ProdukIndex({
         setData('kode_barcode', generatedCode);
     };
 
+    // Handle pemilihan file foto produk
+    const handlePhotoChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setData((prev) => ({
+                ...prev,
+                foto: file,
+                hapus_foto: false,
+            }));
+            const reader = new FileReader();
+            reader.onload = (uploadEvent) => {
+                setPhotoPreview(uploadEvent.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    // Handle pembatalan / hapus foto
+    const handleRemovePhoto = () => {
+        setPhotoPreview(null);
+        setData((prev) => ({
+            ...prev,
+            foto: null,
+            hapus_foto: true,
+        }));
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
     const openAddModal = () => {
         setEditingItem(null);
+        setPhotoPreview(null);
         reset({
             id_kategori: kategori_list[0]?.id_kategori || '',
             nama_produk: '',
             kode_barcode: '',
             harga: '',
             stok: '',
+            foto: null,
+            hapus_foto: false,
         });
         clearErrors();
         setModalOpen(true);
@@ -78,12 +117,15 @@ export default function ProdukIndex({
 
     const openEditModal = (item) => {
         setEditingItem(item);
+        setPhotoPreview(item.foto_url || null);
         setData({
             id_kategori: item.id_kategori,
             nama_produk: item.nama_produk,
             kode_barcode: item.kode_barcode || '',
             harga: item.harga,
             stok: item.stok,
+            foto: null,
+            hapus_foto: false,
         });
         clearErrors();
         setModalOpen(true);
@@ -92,17 +134,25 @@ export default function ProdukIndex({
     const handleSubmit = (e) => {
         e.preventDefault();
         if (editingItem) {
-            put(route('admin.produk.update', editingItem.id_produk), {
+            // Gunakan router.post dengan _method: 'PUT' untuk mendukung multipart/form-data upload file di Laravel
+            router.post(route('admin.produk.update', editingItem.id_produk), {
+                _method: 'PUT',
+                ...data,
+            }, {
+                forceFormData: true,
                 onSuccess: () => {
                     setModalOpen(false);
                     reset();
+                    setPhotoPreview(null);
                 },
             });
         } else {
             post(route('admin.produk.store'), {
+                forceFormData: true,
                 onSuccess: () => {
                     setModalOpen(false);
                     reset();
+                    setPhotoPreview(null);
                 },
             });
         }
@@ -132,7 +182,7 @@ export default function ProdukIndex({
                             Master Data Produk & Barcode
                         </h1>
                         <p className="text-xs font-semibold text-slate-600 mt-0.5">
-                            Kelola katalog barang, label barcode scanner (Code128), harga, dan stok inventaris toko
+                            Kelola katalog barang, foto produk, label barcode scanner (Code128), harga, dan stok toko
                         </p>
                     </div>
 
@@ -146,7 +196,7 @@ export default function ProdukIndex({
                         </Link>
                         <button
                             onClick={openAddModal}
-                            className="inline-flex items-center space-x-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black shadow-xs transition-colors active:scale-95"
+                            className="inline-flex items-center space-x-1.5 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white rounded-xl text-xs font-black shadow-md shadow-blue-500/25 transition-all active:scale-95"
                         >
                             <IconPlus className="w-4 h-4" />
                             <span>+ Tambah Produk Baru</span>
@@ -155,7 +205,7 @@ export default function ProdukIndex({
                 </div>
             }
         >
-            <Head title="Master Produk & Barcode - NAUFAM MART" />
+            <Head title="Master Produk & Barcode - MARTIN MART" />
 
             {/* Database Trigger Info Banner */}
             <div className="mb-6 p-4 rounded-xl bg-blue-50 border-2 border-blue-200 text-blue-950 flex items-center justify-between text-xs">
@@ -169,27 +219,37 @@ export default function ProdukIndex({
                         dan tercatat permanen di riwayat Audit Log.
                     </span>
                 </div>
-                <a
+                <Link
                     href={route('admin.log.index')}
-                    className="font-black underline text-blue-800 hover:text-blue-950 shrink-0 ml-3"
+                    className="font-black text-blue-700 hover:text-blue-900 whitespace-nowrap ml-4"
                 >
                     Lihat Audit Log →
-                </a>
+                </Link>
             </div>
 
+            {/* Main Content Card */}
             <div className="bg-white rounded-2xl border-2 border-slate-200 shadow-xs overflow-hidden">
-                {/* Search & Filter Bar */}
-                <div className="p-6 border-b-2 border-slate-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <form onSubmit={handleFilter} className="flex flex-wrap items-center gap-3 flex-1">
-                        <div className="relative flex-1 min-w-[240px]">
+                {/* Search & Filter Header */}
+                <div className="p-5 border-b-2 border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div>
+                        <h2 className="text-base font-black text-slate-950">
+                            Daftar Katalog Produk Toko
+                        </h2>
+                        <p className="text-xs font-semibold text-slate-600">
+                            Total {produk.total} item barang terdaftar di sistem inventaris
+                        </p>
+                    </div>
+
+                    <form onSubmit={handleFilter} className="flex flex-wrap items-center gap-2">
+                        <div className="relative">
                             <input
                                 type="text"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Cari nama produk atau kode barcode..."
-                                className="w-full pl-10 pr-4 py-2 rounded-xl border-2 border-slate-300 text-sm font-bold text-slate-950 placeholder:text-slate-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 shadow-2xs"
+                                placeholder="Cari nama barang / barcode..."
+                                className="pl-9 pr-4 py-2 rounded-xl border-2 border-slate-300 text-sm font-bold text-slate-950 placeholder:text-slate-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 shadow-2xs w-60"
                             />
-                            <IconSearch className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                            <IconSearch className="w-4 h-4 text-blue-600 absolute left-3 top-2.5" />
                         </div>
 
                         <select
@@ -214,18 +274,19 @@ export default function ProdukIndex({
 
                         <button
                             type="submit"
-                            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-black border border-slate-300 transition-colors"
+                            className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-xl text-xs font-black border border-blue-200 transition-colors"
                         >
                             Filter
                         </button>
                     </form>
                 </div>
 
-                {/* Table Produk */}
+                {/* Table Produk dengan Thumbnail Foto Persegi Panjang */}
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y-2 divide-slate-100 text-left text-sm">
                         <thead className="bg-slate-100 text-slate-900 text-xs uppercase font-black border-b border-slate-200">
                             <tr>
+                                <th className="px-6 py-3.5">Foto</th>
                                 <th className="px-6 py-3.5">ID Produk</th>
                                 <th className="px-6 py-3.5">Nama Produk</th>
                                 <th className="px-6 py-3.5">Kode Barcode (Code128)</th>
@@ -238,13 +299,29 @@ export default function ProdukIndex({
                         <tbody className="divide-y divide-slate-100 bg-white">
                             {produk.data.length === 0 ? (
                                 <tr>
-                                    <td colSpan="7" className="px-6 py-8 text-center text-slate-500 font-bold">
+                                    <td colSpan="8" className="px-6 py-8 text-center text-slate-500 font-bold">
                                         Tidak ada produk yang cocok dengan pencarian Anda.
                                     </td>
                                 </tr>
                             ) : (
                                 produk.data.map((item) => (
                                     <tr key={item.id_produk} className="hover:bg-blue-50/40 transition-colors">
+                                        {/* Thumbnail Foto Persegi Panjang */}
+                                        <td className="px-6 py-3">
+                                            {item.foto_url ? (
+                                                <div className="w-16 h-11 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 shadow-2xs shrink-0 group/img relative">
+                                                    <img
+                                                        src={item.foto_url}
+                                                        alt={item.nama_produk}
+                                                        className="w-full h-full object-cover group-hover/img:scale-110 transition-transform"
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="w-16 h-11 rounded-lg border border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
+                                                    <IconCamera className="w-4 h-4 text-slate-400" />
+                                                </div>
+                                            )}
+                                        </td>
                                         <td className="px-6 py-4 text-xs font-mono font-black text-slate-700">
                                             PRD-{String(item.id_produk).padStart(4, '0')}
                                         </td>
@@ -299,7 +376,7 @@ export default function ProdukIndex({
                                             <button
                                                 onClick={() => openEditModal(item)}
                                                 className="p-1.5 text-slate-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-                                                title="Edit Produk / Stok / Barcode"
+                                                title="Edit Produk / Foto / Stok / Barcode"
                                             >
                                                 <IconEdit className="w-4 h-4" />
                                             </button>
@@ -321,14 +398,82 @@ export default function ProdukIndex({
                 <Pagination links={produk.links} />
             </div>
 
-            {/* Add / Edit Modal with Barcode Generator */}
+            {/* Add / Edit Modal with Photo Upload & Barcode Generator */}
             <ModalDialog
                 show={modalOpen}
                 onClose={() => setModalOpen(false)}
-                title={editingItem ? 'Edit Produk, Stok & Barcode' : 'Tambah Produk & Buat Barcode Baru'}
-                maxWidth="max-w-lg"
+                title={editingItem ? 'Edit Produk, Foto, Stok & Barcode' : 'Tambah Produk Baru (Dengan Foto)'}
+                maxWidth="max-w-xl"
             >
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* BAGIAN UPLOAD FOTO PRODUK (PERSEGI PANJANG) */}
+                    <div className="bg-blue-50/60 p-4 rounded-2xl border-2 border-blue-200 space-y-3">
+                        <label className="block text-xs font-black text-slate-900 flex items-center justify-between">
+                            <span className="flex items-center space-x-1.5">
+                                <IconCamera className="w-4 h-4 text-blue-700" />
+                                <span>Foto Produk (Bentuk Persegi Panjang)</span>
+                            </span>
+                            <span className="text-[10.5px] font-bold text-slate-500">
+                                Opsional • Maks. 3MB (JPG, PNG, WEBP)
+                            </span>
+                        </label>
+
+                        {/* Rectangular Image Preview Box */}
+                        {photoPreview ? (
+                            <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden border-2 border-blue-300 bg-slate-900 shadow-md group">
+                                <img
+                                    src={photoPreview}
+                                    alt="Pratinjau Foto Produk"
+                                    className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-black shadow-md hover:bg-blue-700"
+                                    >
+                                        Ganti Foto
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleRemovePhoto}
+                                        className="px-3 py-1.5 bg-rose-600 text-white rounded-lg text-xs font-black shadow-md hover:bg-rose-700 flex items-center space-x-1"
+                                    >
+                                        <IconX className="w-3.5 h-3.5" />
+                                        <span>Hapus</span>
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div
+                                onClick={() => fileInputRef.current?.click()}
+                                className="w-full aspect-[16/9] rounded-xl border-2 border-dashed border-blue-300 bg-white hover:bg-blue-50/50 flex flex-col items-center justify-center cursor-pointer transition-colors p-4 text-center group"
+                            >
+                                <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                                    <IconCamera className="w-6 h-6" />
+                                </div>
+                                <p className="text-xs font-black text-slate-800">
+                                    Klik untuk Pilih & Upload Foto Produk
+                                </p>
+                                <p className="text-[10.5px] text-slate-500 mt-0.5">
+                                    Rekomendasi rasio persegi panjang 16:9 / 16:10 agar tampil pas di katalog
+                                </p>
+                            </div>
+                        )}
+
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handlePhotoChange}
+                            accept="image/png, image/jpeg, image/jpg, image/webp"
+                            className="hidden"
+                        />
+
+                        {errors.foto && (
+                            <p className="text-xs text-rose-600 font-bold mt-1">{errors.foto}</p>
+                        )}
+                    </div>
+
                     {/* Kategori Produk */}
                     <div>
                         <label className="block text-xs font-black text-slate-900 mb-1">
@@ -480,9 +625,9 @@ export default function ProdukIndex({
                         <button
                             type="submit"
                             disabled={processing}
-                            className="px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition-colors disabled:opacity-50"
+                            className="px-6 py-2.5 text-xs font-black text-white bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 rounded-xl shadow-md shadow-blue-500/25 transition-all disabled:opacity-50"
                         >
-                            {processing ? 'Menyimpan...' : 'Simpan Produk'}
+                            {processing ? 'Menyimpan...' : 'Simpan Data & Foto'}
                         </button>
                     </div>
                 </form>

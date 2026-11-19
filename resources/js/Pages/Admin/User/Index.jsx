@@ -106,7 +106,7 @@ export default function UserIndex({ users, filters = {} }) {
                 </div>
             }
         >
-            <Head title="Manajemen Pengguna - NAUFAM MART" />
+            <Head title="Manajemen Pengguna - MARTIN MART" />
 
             <div className="bg-white rounded-2xl border-2 border-slate-200 shadow-xs overflow-hidden">
                 {/* Search & Actions */}

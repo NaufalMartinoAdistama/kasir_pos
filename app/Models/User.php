@@ -22,6 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'role',
+        'id_pelanggan',
         'password',
     ];
 
@@ -33,6 +34,16 @@ class User extends Authenticatable
     public function isKasir(): bool
     {
         return $this->role === 'kasir';
+    }
+
+    public function isPelanggan(): bool
+    {
+        return $this->role === 'pelanggan';
+    }
+
+    public function pelanggan()
+    {
+        return $this->belongsTo(Pelanggan::class, 'id_pelanggan', 'id_pelanggan');
     }
 
     /**

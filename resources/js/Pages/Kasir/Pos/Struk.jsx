@@ -52,7 +52,7 @@ export default function Struk({ transaksi, kasir_name = 'Kasir Operasional' }) {
 
     return (
         <div className="struk-page-wrapper min-h-screen bg-slate-100 py-6 px-4 flex flex-col items-center justify-start font-mono print:min-h-0 print:h-auto print:py-0 print:px-0 print:m-0 print:bg-white print:block">
-            <Head title={`Struk #TRX-${String(transaksi.id_transaksi).padStart(5, '0')} - NAUFAM MART`} />
+            <Head title={`Struk #TRX-${String(transaksi.id_transaksi).padStart(5, '0')} - MARTIN MART`} />
 
             {/* Injected Print Stylesheet: Format Thermal Paper Mepet Atas & Pas Isi (Tanpa Sisa Kertas Kosong) */}
             <style>{`
@@ -142,10 +142,10 @@ export default function Struk({ transaksi, kasir_name = 'Kasir Operasional' }) {
                 {/* Header Toko */}
                 <div className="text-center pb-2.5">
                     <h2 className="font-extrabold tracking-tight uppercase text-base text-black">
-                        NAUFAM MART
+                        MARTIN MART
                     </h2>
                     <p className="text-[11px] text-slate-700 mt-0.5">
-                        Sistem Penjualan & Inventaris Toko
+                        Supermarket & Ritel Modern
                     </p>
                     <p className="text-[10px] text-slate-600 mt-0.5">
                         Jl. Raya Niaga No. 45 - Madiun
@@ -272,7 +272,7 @@ export default function Struk({ transaksi, kasir_name = 'Kasir Operasional' }) {
                         Barang yang sudah dibeli tidak dapat ditukar atau dikembalikan tanpa struk resmi.
                     </p>
                     <p className="pt-1 text-[8.5px] text-slate-500">
-                        Dicetak oleh Sistem NAUFAM MART POS
+                        Dicetak oleh Sistem MARTIN MART POS
                     </p>
                 </div>
             </div>

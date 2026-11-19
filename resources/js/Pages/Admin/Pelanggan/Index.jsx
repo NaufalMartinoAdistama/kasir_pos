@@ -119,7 +119,7 @@ export default function PelangganIndex({ pelanggan, filters = {}, canDelete = tr
                 </div>
             }
         >
-            <Head title="Master Pelanggan & Member RFID - NAUFAM MART" />
+            <Head title="Master Pelanggan & Member RFID - MARTIN MART" />
 
             <div className="bg-white rounded-2xl border-2 border-slate-200 shadow-xs overflow-hidden">
                 {/* Search Bar & Add Button */}

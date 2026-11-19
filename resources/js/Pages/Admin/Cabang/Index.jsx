@@ -85,7 +85,7 @@ export default function CabangIndex({ cabang = [], filters = {} }) {
                 </div>
             }
         >
-            <Head title="Master Cabang - NAUFAM MART" />
+            <Head title="Master Cabang - MARTIN MART" />
 
             <div className="bg-white rounded-2xl border-2 border-slate-200 shadow-xs overflow-hidden">
                 {/* Search & Actions */}

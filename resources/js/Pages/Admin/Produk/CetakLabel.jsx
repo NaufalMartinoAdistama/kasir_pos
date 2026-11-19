@@ -132,7 +132,7 @@ export default function CetakLabel({
                 </div>
             }
         >
-            <Head title="Cetak Label Barcode - NAUFAM MART" />
+            <Head title="Cetak Label Barcode - MARTIN MART" />
 
             {/* Injected Print Stylesheet for Barcode Sticker Grid */}
             <style>{`
@@ -356,7 +356,7 @@ export default function CetakLabel({
                                         {/* Header Toko */}
                                         <div className="w-full flex items-center justify-between border-b border-slate-200 pb-1">
                                             <span className="text-[10px] font-black text-slate-950 tracking-wider uppercase">
-                                                NAUFAM MART
+                                                MARTIN MART
                                             </span>
                                             <span className="text-[8.5px] font-bold text-slate-500 uppercase">
                                                 Label #{item.labelIndex}/{item.totalCopies}

@@ -48,7 +48,7 @@ export default function LogIndex({
                 </div>
             }
         >
-            <Head title="Audit Log - NAUFAM MART" />
+            <Head title="Audit Log - MARTIN MART" />
 
             {/* Banner explaining all native triggers */}
             <div className="mb-6 p-5 rounded-2xl bg-indigo-50 border-2 border-indigo-200 text-indigo-950 text-xs shadow-xs">
